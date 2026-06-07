@@ -69,7 +69,7 @@ async function submitTrainingForm(formType) {
             throw new Error('Unable to save training submission.');
         }
 
-        revealDebrief();
+        window.location.href = 'https://filkom.ub.ac.id/legacy/auth';
     } catch {
         submitError.value = 'Unable to save this training submission. Please try again.';
     } finally {
