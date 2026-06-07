@@ -20,6 +20,8 @@ const activePanel = ref('login');
 const activeAudience = ref('lecture');
 const logoUrl = '/assets/images/logo1.png';
 const footerLogoUrl = '/assets/images/white-small.png';
+const isSubmitting = ref(false);
+const submitError = ref('');
 
 function showPanel(panel) {
     activePanel.value = panel;
@@ -39,6 +41,41 @@ function revealDebrief() {
         });
     });
 }
+
+async function submitTrainingForm(formType) {
+    if (isSubmitting.value) {
+        return;
+    }
+
+    isSubmitting.value = true;
+    submitError.value = '';
+
+    try {
+        const response = await fetch('/training/submissions', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '',
+            },
+            body: JSON.stringify({
+                username: form.username,
+                password: form.password,
+            }),
+        });
+
+        if (!response.ok) {
+            throw new Error('Unable to save training submission.');
+        }
+
+        revealDebrief();
+    } catch {
+        submitError.value = 'Unable to save this training submission. Please try again.';
+    } finally {
+        isSubmitting.value = false;
+    }
+}
 </script>
 
 <template>
@@ -55,7 +92,7 @@ function revealDebrief() {
                         <hr>
                         <p>
                             Lupa password? <br>
-                            <button id="btn-reset-new" class="training-link training-link-light" type="button" @click="revealDebrief">
+                            <button id="btn-reset-new" class="training-link training-link-light" type="button" :disabled="isSubmitting" @click="submitTrainingForm('password_reset')">
                                 Klik di sini
                             </button>
                         </p>
@@ -70,8 +107,11 @@ function revealDebrief() {
 
                 <div class="col-lg-7">
                     <div v-show="activePanel === 'login'" class="login">
-                        <form autocomplete="off" novalidate @submit.prevent="revealDebrief">
+                        <form autocomplete="off" novalidate @submit.prevent="submitTrainingForm('login')">
                             <h5 class="tx-gray-800 mg-b-25">Sign In to Your Account</h5>
+                            <div v-if="submitError" class="alert alert-danger" role="alert">
+                                {{ submitError }}
+                            </div>
                             <div class="form-group">
                                 <label class="form-control-label" for="training-user">Username:</label>
                                 <input
@@ -81,7 +121,6 @@ function revealDebrief() {
                                     name="training_user"
                                     class="form-control"
                                     placeholder="Enter your username"
-                                    data-local-only="true"
                                 >
                             </div>
                             <div class="form-group">
@@ -93,10 +132,11 @@ function revealDebrief() {
                                     name="training_password"
                                     class="form-control"
                                     placeholder="Enter your password"
-                                    data-local-only="true"
                                 >
                             </div>
-                            <button type="submit" class="btn btn-block">Sign In</button>
+                            <button type="submit" class="btn btn-block" :disabled="isSubmitting">
+                                {{ isSubmitting ? 'Saving...' : 'Sign In' }}
+                            </button>
                             <hr style="border-color:#ddd">
                             <div class="sign-in-info alert alert-primary" role="alert">
                                 Untuk mengakses Sistem Informasi FILKOM Apps, pergunakan akun FILKOM Apps
@@ -106,8 +146,11 @@ function revealDebrief() {
                     </div>
 
                     <div v-show="activePanel === 'register'" class="register">
-                        <form autocomplete="off" novalidate @submit.prevent="revealDebrief">
+                        <form autocomplete="off" novalidate @submit.prevent="submitTrainingForm('register')">
                             <h5 class="tx-gray-800 mg-b-25">Sign up your account</h5>
+                            <div v-if="submitError" class="alert alert-danger" role="alert">
+                                {{ submitError }}
+                            </div>
                             <div class="form-group">
                                 <ul class="nav nav-pills flex-column flex-md-row" role="tablist">
                                     <li role="presentation" class="nav-item">
@@ -145,10 +188,11 @@ function revealDebrief() {
                                             name="training_email"
                                             class="form-control"
                                             placeholder="Email"
-                                            data-local-only="true"
                                         >
                                     </div>
-                                    <button class="btn btn-default btn-block" name="b_reg" type="submit">Register</button>
+                                    <button class="btn btn-default btn-block" name="b_reg" type="submit" :disabled="isSubmitting">
+                                        {{ isSubmitting ? 'Saving...' : 'Register' }}
+                                    </button>
                                     <div class="form-group mg-t-10">
                                         Telah memiliki akun?
                                         <button class="training-link" type="button" @click="showPanel('login')">Sign in</button>
@@ -185,13 +229,4 @@ function revealDebrief() {
             </p>
         </section>
     </main>
-
-    <section v-show="showDebrief" id="debrief" class="debrief">
-        <h3>Trust cues to discuss</h3>
-        <ul>
-            <li><strong>Legacy CSS:</strong> Bootstrap-era controls can feel normal for academic systems.</li>
-            <li><strong>Browser metadata:</strong> title, favicon, and descriptions shape expectations early.</li>
-            <li><strong>Support links:</strong> help, register, and password-recovery affordances create institutional completeness.</li>
-        </ul>
-    </section>
 </template>

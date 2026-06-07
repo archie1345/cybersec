@@ -7,7 +7,7 @@ The page is available at:
 - `/`
 - `/training/social-engineering-login`
 
-The form is local-only JavaScript. Submitting clears the fields and opens the debrief panel.
+Submitting the form records a sanitized training event in the `training_submissions` table and opens the debrief panel. The app does not store raw passwords; it stores only whether a password was entered and its length.
 
 ## Edit The UI
 
@@ -35,12 +35,12 @@ Build frontend assets with:
 npm run build
 ```
 
-## Live Edit With Docker
+## Run With Docker
 
-Use the dev Compose file when you want edits to save on your laptop and update in the browser without rebuilding the image:
+Use Docker when you want Laravel, MySQL, phpMyAdmin, and Vite to run together. Edits save on your laptop and update in the browser:
 
 ```powershell
-docker compose -f docker-compose.dev.yml up --build
+docker compose up --build
 ```
 
 Open:
@@ -49,7 +49,7 @@ Open:
 http://localhost:8000
 ```
 
-The dev stack also starts MySQL and phpMyAdmin:
+The stack is named `cybersec-dev` and also starts MySQL and phpMyAdmin:
 
 ```text
 Database: cybersec
@@ -61,56 +61,14 @@ phpMyAdmin: http://localhost:8081
 Inside Docker, Laravel connects to the database host named `mysql`. From your laptop, the same database is exposed on `127.0.0.1:3306`. If port `3306` is already used by another MySQL/XAMPP service, start the stack with a different host port:
 
 ```powershell
-$env:MYSQL_PORT=3307; docker compose -f docker-compose.dev.yml up --build
+$env:MYSQL_PORT=3307; docker compose up --build
 ```
 
 Then edit `resources/js/components/TrainingLogin.vue` or `resources/css/app.css`. Vite runs in its own container on port `5173` and hot-reloads the UI.
 
-Stop the dev containers with:
+Stop the containers with:
 
 ```powershell
-docker compose -f docker-compose.dev.yml down
-```
-
-If a stale Vite hot file ever makes production look for the dev server, delete `public/hot` and run the production command again.
-
-## Run With Docker
-
-Use this for the production-style container, including Proxmox:
-
-```bash
-docker compose up --build
-```
-
-Open:
-
-```text
-http://localhost:8080
-```
-
-On a Proxmox VM or LXC host with Docker installed, copy this project folder to the host and run the same command. Change the exposed host port with:
-
-```bash
-APP_PORT=8081 docker compose up --build -d
-```
-
-On Windows Docker Desktop, run the same command from PowerShell inside this folder:
-
-```powershell
-docker compose up --build
-```
-
-If PowerShell says it cannot connect to `dockerDesktopLinuxEngine`, open Docker Desktop first and wait until the engine finishes starting.
-
-If you publish it behind a homelab domain or reverse proxy, set the container URL explicitly:
-
-```bash
-DOCKER_APP_URL=https://training.example.test docker compose up --build -d
-```
-
-Stop the container with:
-
-```bash
 docker compose down
 ```
 
