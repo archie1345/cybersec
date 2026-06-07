@@ -1,0 +1,19 @@
+services:
+  app:
+    build:
+      context: .
+      target: production
+    image: security-awareness-training:latest
+    ports:
+      - "${APP_PORT:-8080}:8000"
+    environment:
+      APP_NAME: "Security Awareness Training"
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_KEY: "${DOCKER_APP_KEY:-base64:Iu1cDA3NTYXvIaZvKmG/YRextO8FbJdEMdGYma/meuQ=}"
+      APP_URL: "${DOCKER_APP_URL:-http://localhost:8080}"
+      LOG_CHANNEL: stderr
+      SESSION_DRIVER: file
+      CACHE_STORE: file
+      QUEUE_CONNECTION: sync
+    restart: unless-stopped
