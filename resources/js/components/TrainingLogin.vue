@@ -18,6 +18,8 @@ const form = reactive({
 const showDebrief = ref(false);
 const activePanel = ref('login');
 const activeAudience = ref('lecture');
+const logoUrl = '/assets/images/logo1.png';
+const footerLogoUrl = '/assets/images/white-small.png';
 
 function showPanel(panel) {
     activePanel.value = panel;
@@ -47,7 +49,7 @@ function revealDebrief() {
                     <div>
                         <img
                             class="img-responsive img-responsive-center wd-200 mg-b-10"
-                            src="https://filkom.ub.ac.id/legacy/assets/skin/apps/img/logo1.png"
+                            :src="logoUrl"
                             :alt="`${appName} logo`"
                         >
                         <hr>
@@ -174,7 +176,7 @@ function revealDebrief() {
                 <br>
                 <a href="https://filkom.ub.ac.id/legacy/" rel="noreferrer">
                     <img
-                        src="https://filkom.ub.ac.id/legacy/assets/skin/filkom/img/logo/white-small.png"
+                        :src="footerLogoUrl"
                         class="img-responsive img-responsive-center"
                         alt="Logo Footer"
                         style="width:160px;"
