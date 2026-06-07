@@ -4,16 +4,63 @@ services:
       context: .
       target: production
     image: security-awareness-training:latest
+    container_name: cybersec-app
     ports:
-      - "${APP_PORT:-8080}:8000"
+      - "${APP_PORT:-8083}:8000"
     environment:
       APP_NAME: "Security Awareness Training"
       APP_ENV: production
       APP_DEBUG: "false"
-      APP_KEY: "${DOCKER_APP_KEY:-base64:Iu1cDA3NTYXvIaZvKmG/YRextO8FbJdEMdGYma/meuQ=}"
-      APP_URL: "${DOCKER_APP_URL:-http://localhost:8080}"
+      APP_KEY: "${DOCKER_APP_KEY}"
+      APP_URL: "${DOCKER_APP_URL}"
+      ASSET_URL: "${DOCKER_APP_URL}"
+
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: cybersec
+      DB_USERNAME: cybersec_user
+      DB_PASSWORD: cybersec_password
+
       LOG_CHANNEL: stderr
-      SESSION_DRIVER: file
-      CACHE_STORE: file
-      QUEUE_CONNECTION: sync
+      SESSION_DRIVER: database
+      CACHE_STORE: database
+      QUEUE_CONNECTION: database
+    depends_on:
+      db:
+        condition: service_healthy
     restart: unless-stopped
+
+  db:
+    image: mysql:8.4
+    container_name: cybersec-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: cybersec
+      MYSQL_USER: cybersec_user
+      MYSQL_PASSWORD: cybersec_password
+      MYSQL_ROOT_PASSWORD: root_password
+    volumes:
+      - cybersec_db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -proot_password || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: cybersec-phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "8086:80"
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  cybersec_db_data:
